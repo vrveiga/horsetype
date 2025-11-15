@@ -135,8 +135,8 @@ void draw_all() {
     
     //Desenha as palavras
     if (palavra_atual != NULL) {
-        int y = 18;
-        int x = 0;
+        int y = 15;
+        int x;
         const char **arte = map_palavras(palavra_atual);
         
         start_color();
@@ -149,7 +149,8 @@ void draw_all() {
             for (int j = 0; j < 11; j++) {
                 int len_linha = strlen(arte[j]);
                 int chars_red = (int)(len_linha * progresso);
-                
+                x = (COLS - len_linha) / 2;
+
                 //Parte em vermelho
                 if (chars_red > 0) {
                     attron(COLOR_PAIR(1));
