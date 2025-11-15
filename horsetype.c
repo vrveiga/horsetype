@@ -35,8 +35,8 @@ char palavras[3][10] = {
     "corre!",
     "forca!"
 };
-char *palavra_atual = NULL;
-int idx_letra_atual;
+char *current_word = NULL;
+int idx_current_char;
 
 
 
@@ -74,14 +74,14 @@ void* run_horse(void *arg) {
 void process_input(int ch) {
 
     //So processa se houver uma palavra ativa
-    if (palavra_atual != NULL) {
-        if (ch == palavra_atual[idx_letra_atual]) {
-            idx_letra_atual++;
+    if (current_word != NULL) {
+        if (ch == current_word[idx_current_char]) {
+            idx_current_char++;
 
-            int len_atual = strlen(palavra_atual);
-            if (idx_letra_atual >= len_atual) {
+            int len_atual = strlen(current_word);
+            if (idx_current_char >= len_atual) {
                 // Palavra completada! Limpa a palavra
-                palavra_atual = NULL;
+                current_word = NULL;
 
                 //Atualiza o progresso do cavalo
                 pthread_mutex_lock(&progress_mutex);
@@ -134,22 +134,22 @@ void draw_all() {
     }
     
     //Desenha as palavras
-    if (palavra_atual != NULL) {
+    if (current_word != NULL) {
         int y = 15;
         int x;
-        const char **arte = map_palavras(palavra_atual);
+        const char **arte = map_palavras(current_word);
         
         start_color();
         init_pair(1, COLOR_RED, COLOR_BLACK);
 
         //Depois, na parte do desenho:
         if(arte != NULL){
-            float progresso = (float)idx_letra_atual / strlen(palavra_atual);
+            float progress = (float)idx_current_char / strlen(current_word);
             
             for (int j = 0; j < 11; j++) {
-                int len_linha = strlen(arte[j]);
-                int chars_red = (int)(len_linha * progresso);
-                x = (COLS - len_linha) / 2;
+                int len_line = strlen(arte[j]);
+                int chars_red = (int)(len_line * progress);
+                x = (COLS - len_line) / 2;
 
                 //Parte em vermelho
                 if (chars_red > 0) {
@@ -206,12 +206,12 @@ void init_screen() {
         }
         
         for (int i = 0; i < 19; i++) {
-            int len_linha = strlen(current_frame[i]);
-            int x_centered = (COLS - len_linha) / 2;
+            int len_line = strlen(current_frame[i]);
+            int x_centered = (COLS - len_line) / 2;
             mvprintw(horse_y + i, x_centered-1, "%s", current_frame[i]);
         }
         
-        mvprintw(title_y + TITLE_HEIGHT + 22, (COLS - 16) / 2, "press any key...");
+        mvprintw(title_y + TITLE_HEIGHT + 22, (COLS - 16) / 2, "Aperte qualquer tecla...");
         refresh();
         
         // Verifica se alguma tecla foi pressionada
@@ -243,12 +243,12 @@ void show_results() {
     int x = (COLS - 40) / 2;
 
     mvprintw(y - 1, x, "****************************************");
-    mvprintw(y,     x, "* The winner is... HORSE #%d!           *", winner + 1);
+    mvprintw(y,     x, "* O vencedor é... CAVALO #%d!           *", winner + 1);
     
     if (winner == player_bet) {
-        mvprintw(y + 1, x, "* You won your bet!                    *");
+        mvprintw(y + 1, x, "* Você venceu sua aposta!                    *");
     } else {
-        mvprintw(y + 1, x, "* You lost your bet.                   *");
+        mvprintw(y + 1, x, "* Você perdua sua aposta.                   *");
     }
     mvprintw(y + 2, x, "****************************************");
 
@@ -256,7 +256,7 @@ void show_results() {
     sleep(3);
     flushinp();
 
-    mvprintw(y + 4, x, "     (Press any key to exit)");
+    mvprintw(y + 4, x, "     (Aperte qualquer tecla para sair)");
     refresh();
 
     getch();
@@ -278,12 +278,12 @@ int main(int argc, char *argv[]) {
     
     //Faz a primeira pergunta ate ser um valor valido
     do {
-        mvprintw(2, 2, "How many horses to race? (2-%d): ", MAX_HORSES);
+        mvprintw(2, 2, "Quantos cavalos irão correr? (2-%d): ", MAX_HORSES);
         scanw("%d", &num_horses);
     } while (num_horses < 2 || num_horses > MAX_HORSES);
     //Faz a segunda pergunta ate ser um valor valido
     do {
-        mvprintw(4, 2, "Place your bet! (1-%d): ", num_horses);
+        mvprintw(4, 2, "Faça sua aposta! (1-%d): ", num_horses);
         scanw("%d", &player_bet);
     } while (player_bet < 1 || player_bet > num_horses);
 
@@ -323,10 +323,10 @@ int main(int argc, char *argv[]) {
     while (!game_over) {
 
         //Escolhe a proxima palavra
-        if(palavra_atual == NULL && rand()%10==0){
+        if(current_word == NULL && rand()%10==0){
             int idx_palavra = rand() % 3;
-            palavra_atual = palavras[idx_palavra];
-            idx_letra_atual = 0;
+            current_word = palavras[idx_palavra];
+            idx_current_char = 0;
         }
         int ch = getch();
         if (ch != ERR) {
