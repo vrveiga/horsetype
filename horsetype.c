@@ -6,18 +6,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
-#include "funcoes_aux.h"
-
-const char *TITLE[] = {
-    " _   _                    _____                 ",
-    "| | | | ___  _ __ ___  __|_   _|   _ _ __   ___ ",
-    "| |_| |/ _ \\| '__/ __|/ _ \\| || | | | '_ \\ / _ \\",
-    "|  _  | (_) | |  \\__ \\  __/| || |_| | |_) |  __/",
-    "|_| |_|\\___/|_|  |___/\\___||_| \\__, | .__/ \\___|",
-    "                               |___/|_|         "
-};
-const int TITLE_HEIGHT = 6;
-const int TITLE_WIDTH = 48;
+#include "ascii_data.h"
 
 #define MAX_HORSES 9
 
@@ -38,7 +27,19 @@ char palavras[3][10] = {
 char *current_word = NULL;
 int idx_current_char;
 
+const char** map_palavras(char *palavra){
+    if(!strcmp(palavra, "vai!")){
+        return vai;
+    }
+    if(!strcmp(palavra, "corre!")){
+        return corre;
+    }
+    if(!strcmp(palavra, "forca!")){
+        return forca;
+    }
 
+    return NULL;
+}
 
 void* run_horse(void *arg) {
     int id = *(int*)arg;
@@ -63,12 +64,6 @@ void* run_horse(void *arg) {
     }
     return NULL;
 }
-
-
-
-
-
-
 
 
 void process_input(int ch) {
@@ -169,10 +164,6 @@ void draw_all() {
 }
 
 
-
-
-
-
 void init_screen() {
     initscr();
     cbreak();
@@ -227,10 +218,6 @@ void init_screen() {
     // Restaura modo bloqueante e espera tecla final
     nodelay(stdscr, FALSE);
 }
-
-
-
-
 
 
 void show_results() {
@@ -317,8 +304,6 @@ int main(int argc, char *argv[]) {
     }
 
 
-
-
     //Main Loop
     while (!game_over) {
 
@@ -337,10 +322,6 @@ int main(int argc, char *argv[]) {
         
         usleep(33000);
     }
-
-
-
-
 
 
     for (int i = 0; i < num_horses; i++) {
