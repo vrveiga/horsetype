@@ -1,5 +1,7 @@
 To Compile:
-gcc -o horsetype horsetype.c -lncurses -lpthread;
+gcc -c funcoes_aux.c
+gcc -c horsetype.c
+gcc -o horsetype horsetype.o funcoes_aux.o -lncurses -lpthread;
 
 To Run:
 ./horsetype
