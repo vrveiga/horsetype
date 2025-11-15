@@ -174,28 +174,64 @@ void draw_all() {
 
 
 void init_screen() {
-    //Inicia o terminal no modo tela
     initscr();
     cbreak();
-    //Nao deixa o usuario escrever na tela
     noecho();
-    //Esconde o cursor
     curs_set(0);
     
+    int title_y = (LINES - TITLE_HEIGHT) / 4-5;
+    int title_x = (COLS - TITLE_WIDTH) / 2;
+    
     //Printa o titulo
-    int y = (LINES - TITLE_HEIGHT) / 4;
-    int x = (COLS - TITLE_WIDTH) / 2;
-
     for (int i = 0; i < TITLE_HEIGHT; i++) {
-        mvprintw(y + i, x, "%s", TITLE[i]);
+        mvprintw(title_y + i, title_x, "%s", TITLE[i]);
     }
     
-    mvprintw(y + TITLE_HEIGHT + 2, (COLS - 16) / 2, "press any key...");
-    //Recarrega a tela
-    refresh();
-    //Espera o usuario clicar em alguma tela para continuar
-    getch();
+    //Posição da animacao do cavalo
+    int horse_y = title_y + TITLE_HEIGHT +1;
+    
+    int frame_count = 0;
+    const char **current_frame;
+
+    while(1){
+        // Alterna entre os 4 frames
+        if (frame_count % 4 == 0) {
+            current_frame = frame1;
+        } else if (frame_count % 4 == 1) {
+            current_frame = frame2;
+        } else if (frame_count % 4 == 2) {
+            current_frame = frame3;
+        } else {
+            current_frame = frame4;
+        }
+        
+        for (int i = 0; i < 19; i++) {
+            int len_linha = strlen(current_frame[i]);
+            int x_centered = (COLS - len_linha) / 2;
+            mvprintw(horse_y + i, x_centered-1, "%s", current_frame[i]);
+        }
+        
+        mvprintw(title_y + TITLE_HEIGHT + 22, (COLS - 16) / 2, "press any key...");
+        refresh();
+        
+        // Verifica se alguma tecla foi pressionada
+        nodelay(stdscr, TRUE);
+        if (getch() != ERR) {
+            break;  // Sai da animação se apertar qualquer tecla
+        }
+        
+        usleep(220000);  // ~3 fps (333ms por frame)
+        frame_count++;
+    }
+    
+    // Restaura modo bloqueante e espera tecla final
+    nodelay(stdscr, FALSE);
 }
+
+
+
+
+
 
 void show_results() {
     nodelay(stdscr, FALSE);
