@@ -65,110 +65,18 @@ void* run_horse(void *arg) {
     return NULL;
 }
 
-
-void process_input(int ch) {
-
-    //So processa se houver uma palavra ativa
-    if (current_word != NULL) {
-        if (ch == current_word[idx_current_char]) {
-            idx_current_char++;
-
-            int len_atual = strlen(current_word);
-            if (idx_current_char >= len_atual) {
-                // Palavra completada! Limpa a palavra
-                current_word = NULL;
-
-                //Atualiza o progresso do cavalo
-                pthread_mutex_lock(&progress_mutex);
-                if (!game_over) {
-                    horse_progress[player_bet]++;
-                    
-                    if (horse_progress[player_bet] + 4 >= finish_line && winner == -1) {
-                        game_over = true;
-                        winner = player_bet;
-                    }
-                }
-                pthread_mutex_unlock(&progress_mutex);
-
-            }
-        }
-    }
-
-    
-}
-
-
-void draw_all() {
-    //Limpa a tela
-    erase();
-
-    //Coloca as barras da linha de chegada
-    for (int y = 2; y < num_horses + 2; y++) {
-        mvaddch(y, finish_line, '|');
-    }
-
-    //Desenha cada cavalo
-    for (int i = 0; i < num_horses; i++) {
-        //Trava o mutex e pega a posicao atual do cavalo
-        pthread_mutex_lock(&progress_mutex);
-        int pos = horse_progress[i];
-        pthread_mutex_unlock(&progress_mutex);
-
-        //Desenha o cavalo
-        int y_pos = 2 + i;
-
-        if (i == player_bet) {
-            attron(A_BOLD);
-        }
-        
-        mvprintw(y_pos, pos, "[#%d]", i + 1);
-
-        if (i == player_bet) {
-            attroff(A_BOLD);
-        }
-    }
-    
-    //Desenha as palavras
-    if (current_word != NULL) {
-        int y = 15;
-        int x;
-        const char **arte = map_palavras(current_word);
-        
-        start_color();
-        init_pair(1, COLOR_RED, COLOR_BLACK);
-
-        //Depois, na parte do desenho:
-        if(arte != NULL){
-            float progress = (float)idx_current_char / strlen(current_word);
-            
-            for (int j = 0; j < 11; j++) {
-                int len_line = strlen(arte[j]);
-                int chars_red = (int)(len_line * progress);
-                x = (COLS - len_line) / 2;
-
-                //Parte em vermelho
-                if (chars_red > 0) {
-                    attron(COLOR_PAIR(1));
-                    mvprintw(y + j, x, "%.*s", chars_red, arte[j]);
-                    attroff(COLOR_PAIR(1));
-                }
-                
-                //Parte normal
-                mvprintw(y + j, x + chars_red, "%s", arte[j] + chars_red);
-            }
-        }
-    }
-    
-
-    refresh();
-}
-
-
 void init_screen() {
     initscr();
     cbreak();
     noecho();
     curs_set(0);
+
+    //Definir cores
+    if (has_colors()) {
+        start_color();
+        use_default_colors();
+        init_pair(1, COLOR_RED, -1);
+    }
     
     int title_y = (LINES - TITLE_HEIGHT) / 4-5;
     int title_x = (COLS - TITLE_WIDTH) / 2;
@@ -219,6 +127,95 @@ void init_screen() {
     nodelay(stdscr, FALSE);
 }
 
+void process_input(int ch) {
+    //So processa se houver uma palavra ativa
+    if (current_word != NULL) {
+        if (ch == current_word[idx_current_char]) {
+            idx_current_char++;
+
+            int len_atual = strlen(current_word);
+            if (idx_current_char >= len_atual) {
+                // Palavra completada! Limpa a palavra
+                current_word = NULL;
+
+                //Atualiza o progresso do cavalo
+                pthread_mutex_lock(&progress_mutex);
+                if (!game_over) {
+                    horse_progress[player_bet]++;
+                    
+                    if (horse_progress[player_bet] + 4 >= finish_line && winner == -1) {
+                        game_over = true;
+                        winner = player_bet;
+                    }
+                }
+                pthread_mutex_unlock(&progress_mutex);
+
+            }
+        }
+    }
+}
+
+
+void draw_all() {
+    //Limpa a tela
+    erase();
+
+    //Coloca as barras da linha de chegada
+    for (int y = 2; y < num_horses + 2; y++) {
+        mvaddch(y, finish_line, '|');
+    }
+
+    //Desenha cada cavalo
+    for (int i = 0; i < num_horses; i++) {
+        //Trava o mutex e pega a posicao atual do cavalo
+        pthread_mutex_lock(&progress_mutex);
+        int pos = horse_progress[i];
+        pthread_mutex_unlock(&progress_mutex);
+
+        //Desenha o cavalo
+        int y_pos = 2 + i;
+
+        if (i == player_bet) {
+            attron(A_BOLD);
+        }
+        
+        mvprintw(y_pos, pos, "[#%d]", i + 1);
+
+        if (i == player_bet) {
+            attroff(A_BOLD);
+        }
+    }
+    
+    //Desenha as palavras
+    if (current_word != NULL) {
+        int y = 15;
+        int x;
+        const char **arte = map_palavras(current_word);
+
+        //Depois, na parte do desenho:
+        if(arte != NULL){
+            float progress = (float)idx_current_char / strlen(current_word);
+            
+            for (int j = 0; j < 11; j++) {
+                int len_line = strlen(arte[j]);
+                int chars_red = (int)(len_line * progress);
+                x = (COLS - len_line) / 2;
+
+                //Parte em vermelho
+                if (chars_red > 0) {
+                    attron(COLOR_PAIR(1));
+                    mvprintw(y + j, x, "%.*s", chars_red, arte[j]);
+                    attroff(COLOR_PAIR(1));
+                }
+                
+                //Parte normal
+                mvprintw(y + j, x + chars_red, "%s", arte[j] + chars_red);
+            }
+        }
+    }    
+
+    refresh();
+}
 
 void show_results() {
     nodelay(stdscr, FALSE);
@@ -230,12 +227,12 @@ void show_results() {
     int x = (COLS - 40) / 2;
 
     mvprintw(y - 1, x, "****************************************");
-    mvprintw(y,     x, "* O vencedor é... CAVALO #%d!           *", winner + 1);
+    mvprintw(y,     x, "* O vencedor é... CAVALO #%d!          *", winner + 1);
     
     if (winner == player_bet) {
-        mvprintw(y + 1, x, "* Você venceu sua aposta!                    *");
+        mvprintw(y + 1, x, "* Você venceu sua aposta!             *");
     } else {
-        mvprintw(y + 1, x, "* Você perdua sua aposta.                   *");
+        mvprintw(y + 1, x, "* Você perdeu sua aposta.             *");
     }
     mvprintw(y + 2, x, "****************************************");
 
@@ -243,7 +240,7 @@ void show_results() {
     sleep(3);
     flushinp();
 
-    mvprintw(y + 4, x, "     (Aperte qualquer tecla para sair)");
+    mvprintw(y + 4, x, "   (Aperte qualquer tecla para sair)");
     refresh();
 
     getch();
@@ -303,7 +300,6 @@ int main(int argc, char *argv[]) {
         }
     }
 
-
     //Main Loop
     while (!game_over) {
 
@@ -322,7 +318,6 @@ int main(int argc, char *argv[]) {
         
         usleep(33000);
     }
-
 
     for (int i = 0; i < num_horses; i++) {
         pthread_join(threads[i], NULL);
