@@ -15,22 +15,21 @@ char **generate_ascii_art(const char *word) {
     char **ascii_word = (char**)malloc(sizeof(char*) * LETTER_HEIGHT);
     if ( ascii_word == NULL) {
         perror("Falha ao alocar memoria da arte ascii");
-        exit(1);
+        return NULL;
     }
 
     for (int i = 0; i < LETTER_HEIGHT; i++) { //itera por cada linha
-        ascii_word[i] = (char *)malloc(max_width + 1);
+        ascii_word[i] = (char *)malloc(max_width );
         if (ascii_word[i] == NULL) {
             perror("Falha ao alocar memoria da arte ascii");
-            exit(1);
+            return NULL;
         }
         ascii_word[i][0] = '\0';
 
         for (int j = 0; j < word_len; j++) {//passa pela linha i de cada letra
             char ch = word[j];
             if (ch < 'a' || ch > 'z') continue; //evita erros
-            char id_current_letter = ch - 'a';
-            strncat(ascii_word[i], alphabet[id_current_letter][i], MAX_LETTER_WIDTH);
+            strncat(ascii_word[i], alphabet[ch - 'a'][i], MAX_LETTER_WIDTH);
             
         }
     }
@@ -39,7 +38,7 @@ char **generate_ascii_art(const char *word) {
 }
 
 void free_ascii_art(char **art) {
-    if (art == NULL || *art == NULL) return;
+    if (art == NULL) return;
     for (int i = 0; i < LETTER_HEIGHT; i++) {
         free(art[i]); // libera cada linha
     }

@@ -5,7 +5,7 @@
     #define TITLE_WIDTH 48
     
     #define LETTER_HEIGHT 11
-    #define MAX_LETTER_WIDTH 23
+    #define MAX_LETTER_WIDTH 21
 
     extern const char *TITLE[];
     extern const char *frame1[];
