@@ -9,6 +9,8 @@
 #include "ascii_data.h"
 
 #define MAX_HORSES 9
+#define CHEER_WORD_COUNT 30
+#define MAX_CHEER_WORD_LENGHT 8
 
 int horse_progress[MAX_HORSES];
 int finish_line;
@@ -19,27 +21,58 @@ pthread_mutex_t progress_mutex;
 volatile bool game_over = false;
 int winner = -1;
 
-char palavras[3][10] = {
-    "vai!",
-    "corre!",
-    "forca!"
-};
-char *current_word = NULL;
 int idx_current_char;
+const char *current_word = NULL;
+const char *cheer_words[CHEER_WORD_COUNT] = { //no maximo string de 7 letras (+ \0)
+    "vai", "corre", "voa", "bora", "acelera",
+    "dispara", "cruza", "chega", "avanca", "rapido",
+    "veloz", "firme", "forte", "bravo", "agil",
+    "turbo", "pique", "ritmo", "voando", "ligado",
+    "vence", "ganha", "lider", "campeao", "mito",
+    "lenda", "gloria", "raca", "forca", "furia"
+};
 
-const char** map_palavras(char *palavra){
-    if(!strcmp(palavra, "vai!")){
-        return vai;
-    }
-    if(!strcmp(palavra, "corre!")){
-        return corre;
-    }
-    if(!strcmp(palavra, "forca!")){
-        return forca;
+
+char **generate_ascii_art(const char *word) { //word must be freed with free_ascii_art
+    if (word == NULL) return NULL;
+
+    int word_len = strlen(word);
+    int max_width = (word_len * MAX_LETTER_WIDTH);
+
+    char **ascii_word = (char**)malloc(max_width);
+    if ( ascii_word == NULL) {
+        perror("Falha ao alocar memoria da arte ascii");
+        return NULL;
     }
 
-    return NULL;
+    for (int i = 0; i < LETTER_HEIGHT; i++) { //itera por cada linha
+        ascii_word[i] = (char *)malloc(max_width + 1);
+        if (ascii_word[i] == NULL) {
+            perror("Falha ao alocar memoria da arte ascii");
+            return NULL;
+        }
+        ascii_word[i][0] = '\0';
+
+        for (int j = 0; j < word_len; j++) {//passa pela linha i de cada letra
+            char ch = word[j];
+            if (ch < 'a' || ch > 'z') continue; //evita erros
+            char id_current_letter = ch - 'a';
+            strncat(ascii_word[i], alphabet[id_current_letter][i], MAX_LETTER_WIDTH);
+            
+        }
+    }
+
+    return ascii_word;
 }
+
+void free_ascii_art(char **art) {
+    if (art == NULL || *art == NULL) return;
+    for (int i = 0; i < LETTER_HEIGHT; i++) {
+        free(art[i]); // libera cada linha
+    }
+    free(art); // libera o array de ponteiros 
+}
+
 
 void* run_horse(void *arg) {
     int id = *(int*)arg;
@@ -133,8 +166,8 @@ void process_input(int ch) {
         if (ch == current_word[idx_current_char]) {
             idx_current_char++;
 
-            int len_atual = strlen(current_word);
-            if (idx_current_char >= len_atual) {
+            int current_len = strlen(current_word);
+            if (idx_current_char >= current_len || current_len > MAX_CHEER_WORD_LENGHT) {
                 // Palavra completada! Limpa a palavra
                 current_word = NULL;
 
@@ -190,13 +223,13 @@ void draw_all() {
     if (current_word != NULL) {
         int y = 15;
         int x;
-        const char **arte = map_palavras(current_word);
+        char **arte = generate_ascii_art(current_word);
 
         //Depois, na parte do desenho:
         if(arte != NULL){
             float progress = (float)idx_current_char / strlen(current_word);
             
-            for (int j = 0; j < 11; j++) {
+            for (int j = 0; j < LETTER_HEIGHT; j++) {
                 int len_line = strlen(arte[j]);
                 int chars_red = (int)(len_line * progress);
                 x = (COLS - len_line) / 2;
@@ -212,6 +245,8 @@ void draw_all() {
                 mvprintw(y + j, x + chars_red, "%s", arte[j] + chars_red);
             }
         }
+        free_ascii_art(arte);
+        arte = NULL;
     }    
 
     refresh();
@@ -304,9 +339,10 @@ int main(int argc, char *argv[]) {
     while (!game_over) {
 
         //Escolhe a proxima palavra
-        if(current_word == NULL && rand()%10==0){
-            int idx_palavra = rand() % 3;
-            current_word = palavras[idx_palavra];
+        if(current_word == NULL && rand()%10){ 
+            int idx_word = rand() % CHEER_WORD_COUNT;
+            current_word = cheer_words[idx_word];
+
             idx_current_char = 0;
         }
         int ch = getch();
