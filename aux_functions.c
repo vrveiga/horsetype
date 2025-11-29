@@ -3,9 +3,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-/**
-* @note: return pointer MUST be freed with free_ascii_art
-*/
 char **generate_ascii_art(const char *word) { 
     if (word == NULL) return NULL;
 
@@ -18,7 +15,7 @@ char **generate_ascii_art(const char *word) {
         return NULL;
     }
 
-    for (int i = 0; i < LETTER_HEIGHT; i++) { //itera por cada linha
+    for (int i = 0; i < LETTER_HEIGHT; i++) { // Itera por cada linha
         ascii_word[i] = (char *)malloc(max_width );
         if (ascii_word[i] == NULL) {
             perror("Falha ao alocar memoria da arte ascii");
@@ -26,9 +23,9 @@ char **generate_ascii_art(const char *word) {
         }
         ascii_word[i][0] = '\0';
 
-        for (int j = 0; j < word_len; j++) {//passa pela linha i de cada letra
+        for (int j = 0; j < word_len; j++) { // Passa pela linha i de cada letra
             char ch = word[j];
-            if (ch < 'a' || ch > 'z') continue; //evita erros
+            if (ch < 'a' || ch > 'z') continue; // Evita erros
             strncat(ascii_word[i], alphabet[ch - 'a'][i], MAX_LETTER_WIDTH);
             
         }
@@ -40,7 +37,7 @@ char **generate_ascii_art(const char *word) {
 void free_ascii_art(char **art) {
     if (art == NULL) return;
     for (int i = 0; i < LETTER_HEIGHT; i++) {
-        free(art[i]); // libera cada linha
+        free(art[i]); // Libera cada linha
     }
-    free(art); // libera o array de ponteiros 
+    free(art); // Libera o array de ponteiros 
 }

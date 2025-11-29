@@ -11,7 +11,6 @@
 #include "aux_functions.h"
 
 #define MAX_HORSES 9
-#define MAX_BRIBE 5
 #define CHEER_WORD_COUNT 30
 #define MAX_CHEER_WORD_LENGHT 8
 
@@ -19,7 +18,6 @@ int horse_progress[MAX_HORSES];
 int finish_line;
 int num_horses = 0;
 int player_bet = -1;
-int bribe = -1;
 
 pthread_mutex_t progress_mutex;
 atomic_bool game_over = false;
@@ -27,7 +25,7 @@ int winner = -1;
 
 int idx_current_char;
 const char *current_word = NULL;
-const char *cheer_words[CHEER_WORD_COUNT] = { //no maximo string de 7 letras (+ \0)
+const char *cheer_words[CHEER_WORD_COUNT] = { // No maximo string de 7 letras (+ \0)
     "vai", "corre", "voa", "bora", "acelera",
     "dispara", "cruza", "chega", "avanca", "rapido",
     "veloz", "firme", "forte", "bravo", "agil",
@@ -42,9 +40,7 @@ void* run_horse(void *arg) {
     free(arg);
 
     while (!game_over) { 
-        int minus_sleep = 0;
-        if (id == player_bet) minus_sleep = -bribe*10;
-        int sleep_time = (rand() % 150 + 50) * (1000 + minus_sleep);
+        int sleep_time = (rand() % 150 + 50) * 1000;
         usleep(sleep_time);
 
         pthread_mutex_lock(&progress_mutex);
@@ -69,7 +65,7 @@ void init_screen() {
     noecho();
     curs_set(0);
 
-    //Definir cores
+    // Definir cores
     if (has_colors()) {
         start_color();
         use_default_colors();
@@ -79,12 +75,12 @@ void init_screen() {
     int title_y = (LINES - TITLE_HEIGHT) / 4-5;
     int title_x = (COLS - TITLE_WIDTH) / 2;
     
-    //Printa o titulo
+    // Printa o titulo
     for (int i = 0; i < TITLE_HEIGHT; i++) {
         mvprintw(title_y + i, title_x, "%s", TITLE[i]);
     }
     
-    //Posição da animacao do cavalo
+    // Posição da animacao do cavalo
     int horse_y = title_y + TITLE_HEIGHT +1;
     
     int frame_count = 0;
@@ -117,7 +113,7 @@ void init_screen() {
             break;  // Sai da animação se apertar qualquer tecla
         }
         
-        usleep(220000);  // ~3 fps (333ms por frame)
+        usleep(220000);  // ~4.5 fps (220ms por frame)
         frame_count++;
     }
     
@@ -126,7 +122,7 @@ void init_screen() {
 }
 
 void process_input(int ch) {
-    //So processa se houver uma palavra ativa
+    // Só processa se houver uma palavra ativa
     if (current_word != NULL) {
         if (ch == current_word[idx_current_char]) {
             idx_current_char++;
@@ -136,7 +132,7 @@ void process_input(int ch) {
                 // Palavra completada! Limpa a palavra
                 current_word = NULL;
 
-                //Atualiza o progresso do cavalo
+                // Atualiza o progresso do cavalo
                 pthread_mutex_lock(&progress_mutex);
                 if (!game_over) {
                     horse_progress[player_bet]++;
@@ -155,22 +151,22 @@ void process_input(int ch) {
 
 
 void draw_all() {
-    //Limpa a tela
+    // Limpa a tela
     erase();
 
-    //Coloca as barras da linha de chegada
+    // Coloca as barras da linha de chegada
     for (int y = 2; y < num_horses + 2; y++) {
         mvaddch(y, finish_line, '|');
     }
 
-    //Desenha cada cavalo
+    // Desenha cada cavalo
     for (int i = 0; i < num_horses; i++) {
-        //Trava o mutex e pega a posicao atual do cavalo
+        // Trava o mutex e pega a posicao atual do cavalo
         pthread_mutex_lock(&progress_mutex);
         int pos = horse_progress[i];
         pthread_mutex_unlock(&progress_mutex);
 
-        //Desenha o cavalo
+        // Desenha o cavalo
         int y_pos = 2 + i;
 
         if (i == player_bet) {
@@ -184,13 +180,13 @@ void draw_all() {
         }
     }
     
-    //Desenha as palavras
+    // Desenha as palavras
     if (current_word != NULL) {
         int y = 15;
         int x;
         char **arte = generate_ascii_art(current_word);
 
-        //Depois, na parte do desenho:
+        // Depois, na parte do desenho:
         if(arte != NULL){
             float progress = (float)idx_current_char / strlen(current_word);
             
@@ -199,14 +195,14 @@ void draw_all() {
                 int chars_red = (int)(len_line * progress);
                 x = (COLS - len_line) / 2;
 
-                //Parte em vermelho
+                // Parte em vermelho
                 if (chars_red > 0) {
                     attron(COLOR_PAIR(1));
                     mvprintw(y + j, x, "%.*s", chars_red, arte[j]);
                     attroff(COLOR_PAIR(1));
                 }
                 
-                //Parte normal
+                // Parte normal
                 mvprintw(y + j, x + chars_red, "%s", arte[j] + chars_red);
             }
         }
@@ -246,70 +242,64 @@ void show_results() {
     getch();
 }
 
-int main(int argc, char *argv[]) {
+int main() {
     
     srand(time(NULL));
     
-    //Tela inicial
+    // Tela inicial
     init_screen();
 
-    //Perimite o usuario escrever no terminal
+    // Perimite o usuario escrever no terminal
     echo();
-    //Faz o cursor aparecer
+    // Faz o cursor aparecer
     curs_set(1);
-    //Limpa a tela incial do terminal
+    // Limpa a tela incial do terminal
     clear();
     
-    //Faz a primeira pergunta ate ser um valor valido
+    // Faz a primeira pergunta ate ser um valor valido
     do {
         mvprintw(2, 2, "Quantos cavalos irão correr? (2-%d): ", MAX_HORSES);
         scanw("%d", &num_horses);
     } while (num_horses < 2 || num_horses > MAX_HORSES);
-    //Faz a segunda pergunta ate ser um valor valido
+    // Faz a segunda pergunta ate ser um valor valido
     do {
         mvprintw(4, 2, "Faça sua aposta! (1-%d): ", num_horses);
         scanw("%d", &player_bet);
     } while (player_bet < 1 || player_bet > num_horses);
-    //Faz a segunda pergunta ate ser um valor valido
-    do {
-        mvprintw(6, 2, "Escolha seu suborno (0-%d): ", MAX_BRIBE);
-        scanw("%d", &bribe);
-    } while (bribe < 0 || bribe > MAX_BRIBE);
-    
 
-    //Ajuda para ficar indexado em 0
+    // Ajuda para ficar indexado em 0
     player_bet--;
     
     noecho();
     curs_set(0);
-    //Faz com que o input do usuario (mecanica de torcer) nao bloquei o programa
+    // Faz com que o input do usuario (mecânica de torcer) não bloqueie o programa
     nodelay(stdscr, TRUE);
     
     finish_line = COLS - 2;
-    //Enche o vetor de progresso dos cavalos com 0s
+    // Enche o vetor de progresso dos cavalos com 0s
     memset(horse_progress, 0, sizeof(horse_progress));
 
-    //Inicia os semaforos
+    // Inicia os semaforos
     pthread_mutex_init(&progress_mutex, NULL);
 
-    //Cria o vetor que contem as threads
+    // Cria o vetor que contem as threads
     pthread_t threads[num_horses];
 
-    //Cria uma thread para cada cavalo e aloca elas no vetor 
+    // Cria uma thread para cada cavalo e aloca elas no vetor 
     for (int i = 0; i < num_horses; i++) {
         int *id = malloc(sizeof(int));
         *id = i;
-        //Thread eh criada para seguir a rotina "run_horse"
+        // Thread eh criada para seguir a rotina "run_horse"
         if (pthread_create(&threads[i], NULL, run_horse, (void*)id) != 0) {
             perror("Failed to create thread");
             return 1;
         }
     }
 
-    //Main Loop
+    // Main Loop
     while (!game_over) {
 
-        //Escolhe a proxima palavra
+        // Escolhe a proxima palavra
         if(current_word == NULL && rand()%10){ 
             int idx_word = rand() % CHEER_WORD_COUNT;
             current_word = cheer_words[idx_word];
