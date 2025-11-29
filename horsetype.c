@@ -1,3 +1,4 @@
+#include <stdatomic.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -10,6 +11,7 @@
 #include "aux_functions.h"
 
 #define MAX_HORSES 9
+#define MAX_BRIBE 5
 #define CHEER_WORD_COUNT 30
 #define MAX_CHEER_WORD_LENGHT 8
 
@@ -17,9 +19,10 @@ int horse_progress[MAX_HORSES];
 int finish_line;
 int num_horses = 0;
 int player_bet = -1;
+int bribe = -1;
 
 pthread_mutex_t progress_mutex;
-volatile bool game_over = false;
+atomic_bool game_over = false;
 int winner = -1;
 
 int idx_current_char;
@@ -38,8 +41,10 @@ void* run_horse(void *arg) {
     int id = *(int*)arg;
     free(arg);
 
-    while (!game_over) {
-        int sleep_time = (rand() % 150 + 50) * 1000;
+    while (!game_over) { 
+        int minus_sleep = 0;
+        if (id == player_bet) minus_sleep = -bribe*10;
+        int sleep_time = (rand() % 150 + 50) * (1000 + minus_sleep);
         usleep(sleep_time);
 
         pthread_mutex_lock(&progress_mutex);
@@ -265,6 +270,12 @@ int main(int argc, char *argv[]) {
         mvprintw(4, 2, "Faça sua aposta! (1-%d): ", num_horses);
         scanw("%d", &player_bet);
     } while (player_bet < 1 || player_bet > num_horses);
+    //Faz a segunda pergunta ate ser um valor valido
+    do {
+        mvprintw(6, 2, "Escolha seu suborno (0-%d): ", MAX_BRIBE);
+        scanw("%d", &bribe);
+    } while (bribe < 0 || bribe > MAX_BRIBE);
+    
 
     //Ajuda para ficar indexado em 0
     player_bet--;
