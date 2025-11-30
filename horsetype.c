@@ -154,6 +154,14 @@ void process_input(int ch) {
 
 
 void draw_all() {
+    // Puxa o estado atual da corrida
+    int local_progress[MAX_HORSES];
+
+    // Entra na seção crítica para pegar o estado
+    sem_wait(&progress_sem);
+    memcpy(local_progress, horse_progress, sizeof(horse_progress));
+    sem_post(&progress_sem);
+
     // Limpa a tela
     erase();
 
@@ -164,16 +172,14 @@ void draw_all() {
 
     // Desenha cada cavalo
     for (int i = 0; i < num_horses; i++) {
-        // Trava o semáforo e pega a posicao atual do cavalo
-        sem_wait(&progress_sem);
-        int pos = horse_progress[i];
-        sem_post(&progress_sem);
+        // Pega a posição do cavalo atual no vetor local
+        int pos = local_progress[i];
 
         // Desenha o cavalo
         int y_pos = 2 + i;
 
         if (i == player_bet) {
-            attron(A_BOLD);
+            attron(A_BOLD); // Deixar o cavalo do jogador em negrito
         }
         
         mvprintw(y_pos, pos, "[#%d]", i + 1);
