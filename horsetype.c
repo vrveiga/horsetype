@@ -12,14 +12,14 @@
 
 #define MAX_HORSES 9
 #define CHEER_WORD_COUNT 30
-#define MAX_CHEER_WORD_LENGHT 8
+#define MAX_CHEER_WORD_LENGTH 8
 
 int horse_progress[MAX_HORSES];
 int finish_line;
 int num_horses = 0;
 int player_bet = -1;
 
-pthread_mutex_t progress_mutex;
+sem_t progress_sem;
 atomic_bool game_over = false;
 int winner = -1;
 
@@ -43,7 +43,7 @@ void* run_horse(void *arg) {
         int sleep_time = (rand() % 150 + 50) * 1000;
         usleep(sleep_time);
 
-        pthread_mutex_lock(&progress_mutex);
+        sem_wait(&progress_sem); // Faz o bloqueio do semáforo
 
         if (!game_over) {
             horse_progress[id]++;
@@ -54,7 +54,7 @@ void* run_horse(void *arg) {
             }
         }
         
-        pthread_mutex_unlock(&progress_mutex);
+        sem_post(&progress_sem); // Libera o semáforo
     }
     return NULL;
 }
@@ -128,12 +128,13 @@ void process_input(int ch) {
             idx_current_char++;
 
             int current_len = strlen(current_word);
-            if (idx_current_char >= current_len || current_len > MAX_CHEER_WORD_LENGHT) {
+            if (idx_current_char >= current_len || current_len > MAX_CHEER_WORD_LENGTH) {
                 // Palavra completada! Limpa a palavra
                 current_word = NULL;
 
                 // Atualiza o progresso do cavalo
-                pthread_mutex_lock(&progress_mutex);
+                sem_wait(&progress_sem); // Faz o bloqueio do semáforo
+                
                 if (!game_over) {
                     horse_progress[player_bet]++;
                     
@@ -141,9 +142,9 @@ void process_input(int ch) {
                         game_over = true;
                         winner = player_bet;
                     }
-                }
-                pthread_mutex_unlock(&progress_mutex);
+                } 
 
+                sem_post(&progress_sem); // Libera o semáforo
             }
         }
     }
@@ -161,10 +162,10 @@ void draw_all() {
 
     // Desenha cada cavalo
     for (int i = 0; i < num_horses; i++) {
-        // Trava o mutex e pega a posicao atual do cavalo
-        pthread_mutex_lock(&progress_mutex);
+        // Trava o semáforo e pega a posicao atual do cavalo
+        sem_wait(&progress_sem);
         int pos = horse_progress[i];
-        pthread_mutex_unlock(&progress_mutex);
+        sem_post(&progress_sem);
 
         // Desenha o cavalo
         int y_pos = 2 + i;
@@ -279,8 +280,8 @@ int main() {
     // Enche o vetor de progresso dos cavalos com 0s
     memset(horse_progress, 0, sizeof(horse_progress));
 
-    // Inicia os semaforos
-    pthread_mutex_init(&progress_mutex, NULL);
+    // Inicia o semáforo binário
+    sem_init(&progress_sem, 0, 1);
 
     // Cria o vetor que contem as threads
     pthread_t threads[num_horses];
@@ -306,21 +307,21 @@ int main() {
 
             idx_current_char = 0; 
         }
-        int ch = getch();
+        int ch = getch(); // Pega input do usuário
         if (ch != ERR) {
-            process_input(ch);
+            process_input(ch); // Usa para completar palavra
         }
 
         draw_all();
         
-        usleep(33000);
+        usleep(33000); // ~30 fps (33ms por frame)
     }
 
     for (int i = 0; i < num_horses; i++) {
         pthread_join(threads[i], NULL);
     }
     
-    pthread_mutex_destroy(&progress_mutex);
+    sem_destroy(&progress_sem);
 
     show_results();
     
