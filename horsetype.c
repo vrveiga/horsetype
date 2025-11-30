@@ -34,17 +34,19 @@ const char *cheer_words[CHEER_WORD_COUNT] = { // No maximo string de 7 letras (+
     "lenda", "gloria", "raca", "forca", "furia"
 };
 
-
 void* run_horse(void *arg) {
+    // Função usada pelas threads que representam os cavalos
+    
     int id = *(int*)arg;
     free(arg);
 
     while (!game_over) { 
-        int sleep_time = (rand() % 150 + 50) * 1000;
+        int sleep_time = (rand() % 150 + 50) * 1000; // Tempo aleatório para cavalo se mover
         usleep(sleep_time);
 
         sem_wait(&progress_sem); // Faz o bloqueio do semáforo
 
+        // Se não tiver acabado a corrida, move o cavalo
         if (!game_over) {
             horse_progress[id]++;
             
@@ -215,6 +217,7 @@ void draw_all() {
 }
 
 void show_results() {
+    // Mostra o resultado final da corrida
     nodelay(stdscr, FALSE);
     clear();
 
@@ -244,7 +247,7 @@ void show_results() {
 }
 
 int main() {
-    
+    // Seed para randomização de números
     srand(time(NULL));
     
     // Tela inicial
@@ -316,6 +319,8 @@ int main() {
         
         usleep(33000); // ~30 fps (33ms por frame)
     }
+
+    // Libera memória e finaliza o programa
 
     for (int i = 0; i < num_horses; i++) {
         pthread_join(threads[i], NULL);
