@@ -2,6 +2,11 @@
 
 **Horsetype** é um jogo de corrida de cavalos baseado em digitação, desenvolvido em C e terminal-based. O projeto simula uma corrida em tempo real onde o jogador deve digitar palavras corretamente para motivar seu cavalo.
 
+### Autores
+- Felipe Camargo Cerri
+- Nicolas de Sousa Maia
+- Vitor Rocha Veiga
+
 ## Pré-requisitos
 
 Para compilar e executar o jogo, você precisará de um ambiente Linux com os seguintes pacotes instalados:
@@ -107,9 +112,11 @@ void* run_horse(void *arg) {
 
 ```
 
-A chamada `usleep()` faz com que cada cavalo espere um tempo aleatório entre seus avanços. Caso todos os cavalos fossem executados em uma única thread, o jogo teria que aguardar o tempo total somado de cada atraso antes de atualizar todos os cavalos, o que reduziria drasticamente a performance e tornaria o jogo lento e pouco responsivo. Com o uso de threads, cada cavalo dorme e avança de maneira independente, permitindo que o jogo continue fluindo de forma natural enquanto a animação e o processamento ocorram paralelamente.
+A chamada `usleep()` faz com que cada cavalo espere um tempo aleatório entre seus avanços. Caso todos os cavalos fossem executados em uma única thread, o programa teria que processar a posição e o atraso na movimentação de cada cavalo de forma sequencial, reduzindo a responsividade do jogo. Com o uso de threads, cada cavalo dorme e avança de maneira independente, permitindo que o jogo continue fluindo de forma natural enquanto a animação e o processamento ocorram paralelamente.
 
 Assim, o uso de threads não apenas melhora o desempenho geral, mas também permite uma modelagem mais realista do comportamento assíncrono dos cavalos na corrida.
+
+Quando o jogo acaba, todas as threads dos cavalos são finalizadas utilizando o `pthread_join()`.
 
 ## Condições de Corrida
 ara viabilizar a utilização de multithreading e evitar comportamentos indefinidos, foi necessário identificar e controlar o acesso às variáveis compartilhadas entre a thread principal (responsável pelo input e output) e as threads dos cavalos. As principais variáveis críticas identificadas foram:
