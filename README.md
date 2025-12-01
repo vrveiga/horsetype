@@ -1,15 +1,71 @@
-To Compile:
-gcc -c ascii_data.c;
-gcc -c aux_functions.c;
-gcc -c horsetype.c;
+# Manual do Jogo: Horsetype
 
-gcc -o horsetype horsetype.o aux_functions.o ascii_data.o -lncurses -lpthread;
+**Horsetype** é um jogo de corrida de cavalos baseado em digitação, desenvolvido em C e terminal-based. O projeto simula uma corrida em tempo real onde o jogador deve digitar palavras corretamente para motivar seu cavalo.
 
-To Run:
-./horsetype
+## Pré-requisitos
 
-To Debug:
-valgrind --leak-check=full --track-origins=yes --show-leak-kinds=definite  ./horsetype
+Para compilar e executar o jogo, você precisará de um ambiente Linux com os seguintes pacotes instalados:
+
+  * **GCC** (Compilador C)
+  * **Make** (Automação de compilação)
+  * **Biblioteca Ncurses** (Interface gráfica de terminal)
+  * **Pthread Library** (Para uso de threads)
+
+Para instalá-las no ubuntu/debian, execute:
+
+```bash
+sudo apt update
+sudo apt install build-essential libncurses5-dev libncursesw5-dev
+```
+
+## Compilação
+
+Montamos um Makefile para auxiliar na compilação do jogo. Ele automaticamente gera os objetos necessários linkados nas bibliotecas, utilizando as diretivas -lncurses -lpthread, e gera um único binário executável.
+
+Para compilar, basta rodar:
+
+```bash
+make
+```
+
+Se quiser limpar os arquivos gerados (*.o e ./horsetype), basta rodar:
+
+```bash
+make clean
+```
+
+## Execução
+
+Após a compilação, você pode iniciar o jogo rodando:
+
+```bash
+make run
+```
+
+## Como Jogar
+
+O jogo combina sorte (movimentação autônoma dos cavalos) com habilidade (digitação rápida).
+
+### Configuração da Corrida
+
+Ao iniciar o jogo, siga as instruções na tela:
+
+1.  **Defina os participantes:** Digite quantos cavalos irão correr (Mínimo: 2, Máximo: 9).
+2.  **Faça sua aposta:** Escolha o número do cavalo em que deseja apostar (ex: 1 para o Cavalo \#1).
+
+### A Corrida
+
+Assim que a corrida começar:
+
+  * Todos os cavalos se moverão automaticamente em direção à linha de chegada (lado direito da tela).
+  * Palavras aleatórias aparecerão na parte inferior da tela.
+  * Digite as letras da palavra corretamente.
+  * Ao completar uma palavra, seu cavalo ganha um impulso.
+  * Quanto mais palavras você completar, maiores as chances de seu cavalo vencer!
+
+### Fim de Jogo
+
+A corrida termina quando o primeiro cavalo cruzar a linha de chegada. Uma tela de resultados será exibida informando o vencedor e se você ganhou ou perdeu a aposta.
 
 ## Threads
 

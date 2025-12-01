@@ -310,7 +310,7 @@ int main() {
     while (!game_over) {
 
         // Escolhe a proxima palavra
-        if(current_word == NULL && rand()%10){ 
+        if(current_word == NULL && rand() % 30 == 0){ 
             int idx_word = rand() % CHEER_WORD_COUNT;
             current_word = cheer_words[idx_word];
 
