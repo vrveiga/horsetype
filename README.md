@@ -3,9 +3,9 @@
 **Horsetype** é um jogo de corrida de cavalos baseado em digitação, desenvolvido em C e terminal-based. O projeto simula uma corrida em tempo real onde o jogador deve digitar palavras corretamente para motivar seu cavalo.
 
 ### Autores
-- Felipe Camargo Cerri
-- Nicolas de Sousa Maia
-- Vitor Rocha Veiga
+- Felipe Camargo Cerri - 15451119
+- Nicolas de Sousa Maia - 15481857
+- Vitor Rocha Veiga - 15492449
 
 ## Pré-requisitos
 
