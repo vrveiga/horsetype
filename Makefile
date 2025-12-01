@@ -1,5 +1,4 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -g
 LDFLAGS = -lncurses -lpthread
 
 TARGET = horsetype
@@ -12,7 +11,7 @@ $(TARGET): $(OBJS)
 	$(CC) $(OBJS) -o $(TARGET) $(LDFLAGS)
 
 %.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) -c $< -o $@
 
 clean:
 	rm -f $(OBJS) $(TARGET)
