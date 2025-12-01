@@ -14,7 +14,7 @@ Para compilar e executar o jogo, você precisará de um ambiente Linux com os se
   * **GCC** (Compilador C)
   * **Make** (Automação de compilação)
   * **Biblioteca Ncurses** (Interface gráfica de terminal)
-  * **Pthread Library** (Para uso de threads)
+  * **Biblioteca Pthread** (Para uso de threads)
 
 Para instalá-las no ubuntu/debian, execute:
 
