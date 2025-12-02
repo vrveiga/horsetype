@@ -121,7 +121,7 @@ Assim, o uso de threads não apenas melhora o desempenho geral, mas também perm
 Quando o jogo acaba, todas as threads dos cavalos são finalizadas utilizando o `pthread_join()`.
 
 ## Condições de Corrida
-ara viabilizar a utilização de multithreading e evitar comportamentos indefinidos, foi necessário identificar e controlar o acesso às variáveis compartilhadas entre a thread principal (responsável pelo input e output) e as threads dos cavalos. As principais variáveis críticas identificadas foram:
+Para viabilizar a utilização de multithreading e evitar comportamentos indefinidos, foi necessário identificar e controlar o acesso às variáveis compartilhadas entre a thread principal (responsável pelo input e output) e as threads dos cavalos. As principais variáveis críticas identificadas foram:
 
 
 ```c
@@ -230,7 +230,7 @@ Novamente a função realiza a leitura e escrita na variável compartilhada, o b
 ## Outros Métodos de Evitar Condições de Corrida
 
 ### `game_over`
-evido a simplicidade dessa varíavel booleana, a declaramos com o tipo atomic_bool da biblioteca <stdatomic.h>. Isso garante que as operações de leitura e escrita nessa flag sejam atômicas ao nível do processador evitando a dessincronização de leitura e escrita dessa variável. Embora o fluxo lógico principal já esteja protegido por semáforos em `processo_input()` e `run_horse()`, a ausência dessa proteção contra interrupções de escalonamento na main, permitiria a validação da condição do laço while como verdadeira instantes antes de um cavalo vencer, uma vez que a decisão de entrar no laço já foi tomada, o código executaria todo o ciclo de desenho novamente com o estado antigo. Dessa forma, o erro ocorreria pela alteração da variável após o acesso, printando um frame a mais desnecessário antes de encerrar o programa.
+Devido a simplicidade dessa varíavel booleana, a declaramos com o tipo atomic_bool da biblioteca <stdatomic.h>. Isso garante que as operações de leitura e escrita nessa flag sejam atômicas ao nível do processador evitando a dessincronização de leitura e escrita dessa variável. Embora o fluxo lógico principal já esteja protegido por semáforos em `processo_input()` e `run_horse()`, a ausência dessa proteção contra interrupções de escalonamento na main, permitiria a validação da condição do laço while como verdadeira instantes antes de um cavalo vencer, uma vez que a decisão de entrar no laço já foi tomada, o código executaria todo o ciclo de desenho novamente com o estado antigo. Dessa forma, o erro ocorreria pela alteração da variável após o acesso, printando um frame a mais desnecessário antes de encerrar o programa.
 
 ### `winner`
 Apesar da variável winner não possuir um semáforo próprio, ela é protegida indiretamente pelo mesmo semáforo de horse_progress, evitando uma condição de corrida nas funções `run_hose()` e `process_input()` a partir da seguinte sequência:
